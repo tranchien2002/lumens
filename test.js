@@ -1,86 +1,23 @@
-const {
-  TransactionBuilder,
-  Server,
-  Keypair,
-  BASE_FEE,
-  Networks,
-  Operation,
-  Asset
-} = require('stellar-sdk');
-
-const server = new Server('https://horizon-testnet.stellar.org');
-const baseFee = BASE_FEE;
-const networkPassphrase = Networks.TESTNET;
-
-const createAccount = async () => {
-  const pair = Keypair.random();
+var StellarSdk = require('stellar-sdk');
+const fetch = require('node-fetch');
+const createAccount = () => {
+  const pair = StellarSdk.Keypair.random();
   return pair.secret();
 };
 
+//SBZ7HKBO7AQJYVDWO7GASFHOZM5JUOZ74GRPH25TVF5EWR3OXE6WBRXC
+
 const getPublicKey = async _privateKey => {
-  const pair = Keypair.fromSecret(_privateKey);
+  const pair = StellarSdk.Keypair.fromSecret(_privateKey);
   return pair.publicKey();
 };
 
-const faucet = async _publicKey => {
-  try {
-    await server.friendbot(_publicKey).call();
-  } catch (e) {
-    console.log(e);
-  }
-};
-
 const getNativeBalance = async _publicKey => {
-  let account = await server.loadAccount(_publicKey);
+  const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+  const account = await server.loadAccount(_publicKey);
   let res = account.balances.find(e => e.asset_type === 'native');
+  console.log(res.balance);
   return res.balance;
-};
-
-const createFeeBumpTx = async (_privateKey, _to, _amount) => {
-  const keypair = Keypair.fromSecret(_privateKey);
-  var innerTx;
-  const res = await server.loadAccount(keypair.publicKey()).then(account => {
-    innerTx = new TransactionBuilder(account, {
-      fee: baseFee,
-      networkPassphrase,
-      v1: true
-    })
-      // .addOperation(
-      //   Operation.bumpSequence({
-      //     bumpTo: '0'
-      //   })
-      // )
-      // .setTimeout(0)
-      .addOperation(
-        Operation.payment({
-          destination: _to,
-          // Because Stellar allows transaction in many currencies, you must
-          // specify the asset type. The special "native" asset represents Lumens.
-          asset: Asset.native(),
-          amount: _amount.toString()
-        })
-      )
-      // Wait a maximum of three minutes for the transaction
-      .setTimeout(180)
-      .build();
-    innerTx.sign(keypair);
-    return innerTx;
-  });
-  return res;
-};
-
-const submitFeeBumpTrx = async (_privateKey, _trxObj) => {
-  console.log(_trxObj);
-  const feeSource = Keypair.fromSecret(_privateKey);
-  const feeBumpTxn = new TransactionBuilder.buildFeeBumpTransaction(
-    feeSource,
-    baseFee,
-    _trxObj,
-    networkPassphrase
-  );
-
-  feeBumpTxn.sign(feeSource);
-  return server.submitTransaction(feeBumpTxn);
 };
 
 const transferLumen = (_privateKey, _to, _amount) => {
@@ -140,35 +77,55 @@ const transferLumen = (_privateKey, _to, _amount) => {
     });
 };
 
-// createFeeBumpTx(
+const faucet = async _publicKey => {
+  try {
+    const response = await fetch(
+      `https://friendbot.stellar.org?addr=${encodeURIComponent(_publicKey)}`
+    );
+    const responseJSON = await response.json();
+    console.log('SUCCESS! You have a new account :)\n', responseJSON);
+  } catch (e) {
+    console.error('ERROR!', e);
+  }
+};
+// faucet('SDEOACSWLLCHBOACI3K6EDAB33XM3JQ4NVG6NVGGTJISCTLVP2WRKVHX').then(e => console.log(e));
+
+const createInnerTrx = async (_privateKey, _amount) => {};
+
+// getPublicKey('SBZ7HKBO7AQJYVDWO7GASFHOZM5JUOZ74GRPH25TVF5EWR3OXE6WBRXC');
+
+// getPublicKey('SAIO6VONEI2GY2LD32LECMHTKJYANHTOPBXDSPQ7BEXBMQ3PTI2NJMKN').then(e => console.log(e));
+
+// transferLumen(
 //   'SAIO6VONEI2GY2LD32LECMHTKJYANHTOPBXDSPQ7BEXBMQ3PTI2NJMKN',
 //   'GATNAV6NZ77OUJ3K26ZBR2POHNVCVEV3VUPV5ATBLBNITWQDQ5BZWQJR',
 //   100
-// ).then(e => {
-//   submitFeeBumpTrx('SDEOACSWLLCHBOACI3K6EDAB33XM3JQ4NVG6NVGGTJISCTLVP2WRKVHX', e).then(res =>
-//     console.log(res)
-//   );
-// });
-
-// getPublicKey('SAIO6VONEI2GY2LD32LECMHTKJYANHTOPBXDSPQ7BEXBMQ3PTI2NJMKN').then(e => console.log(e));
-// getNativeBalance('GATNAV6NZ77OUJ3K26ZBR2POHNVCVEV3VUPV5ATBLBNITWQDQ5BZWQJR').then(e =>
-//   console.log(e)
 // );
-// faucet('GATNAV6NZ77OUJ3K26ZBR2POHNVCVEV3VUPV5ATBLBNITWQDQ5BZWQJR').then(e => console.log(e));
-// createAccount().then(e => console.log(e));
-// getPublicKey('SDEOACSWLLCHBOACI3K6EDAB33XM3JQ4NVG6NVGGTJISCTLVP2WRKVHX').then(e => console.log(e));
 
-//Privatekey
-//SDEOACSWLLCHBOACI3K6EDAB33XM3JQ4NVG6NVGGTJISCTLVP2WRKVHX
-//PublicKey
-//GATNAV6NZ77OUJ3K26ZBR2POHNVCVEV3VUPV5ATBLBNITWQDQ5BZWQJR
+// const pair = StellarSdk.Keypair.random();
+// console.log(pair.publicKey());
+
+//Faucet lumens
+// const fetch = require('node-fetch');
+
+// (async function main() {
+//   try {
+//     const response = await fetch(
+//       `https://friendbot.stellar.org?addr=${encodeURIComponent(
+//         'GC2BKLYOOYPDEFJKLKY6FNNRQMGFLVHJKQRGNSSRRGSMPGF32LHCQVGF'
+//       )}`
+//     );
+//     const responseJSON = await response.json();
+//     console.log('SUCCESS! You have a new account :)\n', responseJSON);
+//   } catch (e) {
+//     console.error('ERROR!', e);
+//   }
+// })();
 
 module.exports = {
   createAccount: createAccount,
   getPublicKey: getPublicKey,
   getNativeBalance: getNativeBalance,
   transferLumen: transferLumen,
-  createFeeBumpTx: createFeeBumpTx,
-  faucet: faucet,
-  submitFeeBumpTrx: submitFeeBumpTrx
+  faucet: faucet
 };
