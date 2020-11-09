@@ -12,8 +12,6 @@ const server = new Server('https://horizon-testnet.stellar.org');
 const baseFee = BASE_FEE;
 const networkPassphrase = Networks.TESTNET;
 
-var StellarSdk = require('stellar-sdk');
-
 const createAccount = async () => {
   const pair = Keypair.random();
   return pair.secret();
@@ -66,46 +64,18 @@ const createFeeBumpTx = async (_privateKey, _to, _amount) => {
       .setTimeout(180)
       .build();
     innerTx.sign(keypair);
-    let toEnvelope = innerTx.toEnvelope.toString();
-    innerTx.toEnvelope = toEnvelope;
-    innerTx = JSON.stringify(innerTx, function (key, value) {
-      if (typeof value === 'function') {
-        return value.toString();
-      } else {
-        return value;
-      }
-    });
-
-    return innerTx;
+    let toEnvelope = innerTx.toXDR();
+    return toEnvelope;
   });
   return innerTx;
 };
 
 const submitFeeBumpTrx = async (_privateKey, _trxObj) => {
-  let object = JSON.parse(_trxObj);
-
-  eval('object._memo._arm.read' + ' = ' + object._memo._arm.read);
-  eval('object._memo._arm.write = ' + object._memo._arm.write);
-  eval('object._memo._arm.toXDR = ' + object._memo._arm.toXDR);
-  eval('object._memo._arm.fromXDR = ' + object._memo._arm.fromXDR);
-  eval('object._memo._arm.isValid = ' + object._memo._arm.isValid);
-
-  eval('object._memo._armType.read' + ' = ' + object._memo._armType.read);
-  eval('object._memo._armType.write = ' + object._memo._armType.write);
-  eval('object._memo._armType.toXDR = ' + object._memo._armType.toXDR);
-  eval('object._memo._armType.fromXDR = ' + object._memo._armType.fromXDR);
-  eval('object._memo._armType.isValid = ' + object._memo._armType.isValid);
-
-  eval('object.toEnvelope = ' + object.toEnvelope);
-  // let object = _trxObj;
-  console.log('================');
-  console.log(object);
-  console.log('================');
   const feeSource = Keypair.fromSecret(_privateKey);
   const feeBumpTxn = new TransactionBuilder.buildFeeBumpTransaction(
     feeSource,
     baseFee,
-    object,
+    _trxObj,
     networkPassphrase
   );
 
@@ -170,15 +140,15 @@ const transferLumen = (_privateKey, _to, _amount) => {
     });
 };
 
-createFeeBumpTx(
-  'SAIO6VONEI2GY2LD32LECMHTKJYANHTOPBXDSPQ7BEXBMQ3PTI2NJMKN',
-  'GATNAV6NZ77OUJ3K26ZBR2POHNVCVEV3VUPV5ATBLBNITWQDQ5BZWQJR',
-  100
-).then(e => {
-  submitFeeBumpTrx('SDEOACSWLLCHBOACI3K6EDAB33XM3JQ4NVG6NVGGTJISCTLVP2WRKVHX', e).then(res =>
-    console.log(res)
-  );
-});
+// createFeeBumpTx(
+//   'SAIO6VONEI2GY2LD32LECMHTKJYANHTOPBXDSPQ7BEXBMQ3PTI2NJMKN',
+//   'GATNAV6NZ77OUJ3K26ZBR2POHNVCVEV3VUPV5ATBLBNITWQDQ5BZWQJR',
+//   100
+// ).then(e => {
+//   submitFeeBumpTrx('SDEOACSWLLCHBOACI3K6EDAB33XM3JQ4NVG6NVGGTJISCTLVP2WRKVHX', e).then(res =>
+//     console.log(res)
+//   );
+// });
 
 // getPublicKey('SAIO6VONEI2GY2LD32LECMHTKJYANHTOPBXDSPQ7BEXBMQ3PTI2NJMKN').then(e => console.log(e));
 // getNativeBalance('GATNAV6NZ77OUJ3K26ZBR2POHNVCVEV3VUPV5ATBLBNITWQDQ5BZWQJR').then(e =>
