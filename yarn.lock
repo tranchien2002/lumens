@@ -2412,6 +2412,21 @@ stellar-base@^3.0.3:
   optionalDependencies:
     sodium-native "^2.3.0"
 
+stellar-base@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/stellar-base/-/stellar-base-4.0.2.tgz#f31302d4e54721be63809f910ae6e986c4cb1aaa"
+  integrity sha512-ATRKXCCcNCCmSTU/BmoHGvOaOmPdm0OHQgXVQjn5gqLXyMpdAncRs5G4tLN0oU9Rz7OCcyBSU6isO1gd8T4EDQ==
+  dependencies:
+    base32.js "^0.1.0"
+    bignumber.js "^4.0.0"
+    crc "^3.5.0"
+    js-xdr "^1.1.3"
+    lodash "^4.17.11"
+    sha.js "^2.3.6"
+    tweetnacl "^1.0.0"
+  optionalDependencies:
+    sodium-native "^2.3.0"
+
 stellar-sdk@5.0.3:
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/stellar-sdk/-/stellar-sdk-5.0.3.tgz#9eb329f8645090d3b794998f9afd82f7516ae5b4"
